@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontend Mock Test</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="monitoring-banner">
+        <span><i class="fas fa-camera"></i> Camera Active</span>
+        <span><i class="fas fa-microphone"></i> Audio Monitoring</span>
+        <span><i class="fas fa-network-wired"></i> IP Tracking Enabled</span>
+        <span><i class="fas fa-eye"></i> AI Monitoring Active</span>
+    </div>
+
+    <div class="container">
+        <header class="main-header">
+            <div class="timer-section">
+                <div class="progress-bar">
+                    <div class="progress" id="test-progress"></div>
+                </div>
+                <div class="timer" id="timer">00:00</div>
+            </div>
+            
+            <div class="controls">
+                <div class="theme-toggle">
+                    <label for="theme-switch">Theme:</label>
+                    <select id="theme-switch" class="control-input">
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                    </select>
+                </div>
+                
+                <div class="font-size">
+                    <label for="font-size">Font Size:</label>
+                    <select id="font-size" class="control-input">
+                        <option value="small">Small</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="large">Large</option>
+                    </select>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <aside class="rules-sidebar">
+                <h2>Test Rules</h2>
+                <ul>
+                    <li>No tab switching allowed (3 violations = automatic submission)</li>
+                    <li>Copy-paste functionality is disabled</li>
+                    <li>Page refresh will trigger a warning</li>
+                    <li>AI monitoring system is active</li>
+                    <li>Time limit must be strictly followed</li>
+                    <li>All questions must be attempted</li>
+                </ul>
+            </aside>
+
+            <main class="test-area">
+                <div class="tab-container">
+                    <div class="tabs">
+                        <button class="tab-btn active" data-tab="instructions">Instructions</button>
+                        <button class="tab-btn" data-tab="editor">Code Editor</button>
+                    </div>
+
+                    <div class="tab-content">
+                        <div id="instructions" class="tab-pane active">
+                            <h2>Test Instructions</h2>
+                            <div class="instruction-content"></div>
+                        </div>
+
+                        <div id="editor" class="tab-pane">
+                            <div class="editor-container">
+                                <div class="code-editor">
+                                    <h3>Code Editor</h3>
+                                    <textarea id="code-input" placeholder="Write your code here..."></textarea>
+                                </div>
+                                <div class="preview-pane">
+                                    <h3>Preview</h3>
+                                    <iframe id="preview-frame" title="Code Preview"></iframe>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <footer class="test-footer">
+            <button id="submit-test" class="submit-btn">
+                <i class="fas fa-paper-plane"></i> Submit Test
+            </button>
+            <div id="submission-status" class="status-message"></div>
+        </footer>
+    </div>
+
+    <!-- Start Modal -->
+    <div id="start-modal" class="modal">
+        <div class="modal-content">
+            <h2>Welcome to Frontend Mock Test</h2>
+            <p>Please select your test type and preferred time limit to begin.</p>
+            
+            <div class="test-selection">
+                <label for="test-type">Test Type:</label>
+                <select id="test-type" class="control-input">
+                    <option value="html">HTML Test</option>
+                </select>
+            </div>
+            
+            <div class="time-selection">
+                <label for="time-limit">Test Duration:</label>
+                <select id="time-limit" class="control-input">
+                    <option value="30">30 Minutes</option>
+                    <option value="60">60 Minutes</option>
+                    <option value="90">90 Minutes</option>
+                </select>
+            </div>
+            
+            <button id="start-test" class="start-btn">Start Test</button>
+        </div>
+    </div>
+    <script type="module" src="instruction.js"></script>
+    <script type="module" src="script.js"></script>
+</body>
+</html>

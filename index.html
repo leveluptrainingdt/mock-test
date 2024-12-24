@@ -60,24 +60,24 @@
             <main class="test-area">
                 <div class="tab-container">
                     <div class="tabs">
-                        <button class="tab-btn active" data-tab="instructions">Instructions</button>
-                        <button class="tab-btn" data-tab="editor">Code Editor</button>
+                        <button class="tab-btn active" data-tab="instructions"><i class="fas fa-book-open"></i> Instructions</button>
+                        <button class="tab-btn" data-tab="editor"> <i class="fas fa-code"></i> Code Editor</button>
                     </div>
 
                     <div class="tab-content">
                         <div id="instructions" class="tab-pane active">
-                            <h2>Test Instructions</h2>
+                            <h2><i class="fas fa-book-open"></i> Instructions</h2>
                             <div class="instruction-content"></div>
                         </div>
 
                         <div id="editor" class="tab-pane">
                             <div class="editor-container">
                                 <div class="code-editor">
-                                    <h3>Code Editor</h3>
+                                    <h3><i class="fas fa-code"></i> Code Editor</h3>
                                     <textarea id="code-input" placeholder="Write your code here..."></textarea>
                                 </div>
                                 <div class="preview-pane">
-                                    <h3>Preview</h3>
+                                    <h3><i class="fas fa-eye"></i> Live Preview</h3>
                                     <iframe id="preview-frame" title="Code Preview"></iframe>
                                 </div>
                             </div>
@@ -102,7 +102,7 @@
             <p>Please select your test type and preferred time limit to begin.</p>
             
             <div class="test-selection">
-                <label for="test-type">Test Type:</label>
+                <label for="test-type">Test-Selection:</label>
                 <select id="test-type" class="control-input">
                     <option value="html">HTML Test</option>
                 </select>

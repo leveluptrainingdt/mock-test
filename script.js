@@ -24,6 +24,26 @@ document.addEventListener('DOMContentLoaded', () => {
     let testStarted = false;
     let currentLanguage = 'html';
 
+    function getTestDuration(testType) {
+        const instructions = mockTestInstructions[testType.toLowerCase()];
+        if (!instructions || !instructions.duration) {
+            return 30; // fallback duration in minutes
+        }
+        // Parse duration string to get minutes
+        const minutes = parseInt(instructions.duration);
+        return isNaN(minutes) ? 30 : minutes;
+    }
+
+    startButton.addEventListener('click', () => {
+        const testType = testTypeSelect.value;
+        const minutes = getTestDuration(testType);
+        startModal.style.display = 'none';
+        testStarted = true;
+        startTimer(minutes);
+        loadSavedCode();
+        loadInstructions(currentLanguage);
+    });
+
     // Check device type immediately
     checkDeviceType();
 
@@ -50,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <p class="duration">Duration: ${instructions.duration}</p>
                         <p>${instructions.overview}</p>
                     </div>
-            `;
+            `; 
 
             instructions.sections.forEach(section => {
                 html += `
@@ -297,9 +317,234 @@ document.addEventListener('DOMContentLoaded', () => {
         loadInstructions(currentLanguage);
     });
 
-    submitButton.addEventListener('click', () => {
-        submitTest('Test submitted successfully');
-    });
+    // Function to evaluate HTML code and return score details
+    function evaluateHtmlCode(code) {
+        const requirements = {
+            basicStructure: {
+                points: 5,
+                check: (code) => {
+                    return code.includes('<!DOCTYPE html>') && 
+                           code.includes('<html') && 
+                           code.includes('<head') && 
+                           code.includes('<title') && 
+                           code.includes('<body') &&
+                           /<h[1-6]/.test(code);
+                }
+            },
+            textFormatting: {
+                points: 5,
+                check: (code) => {
+                    return code.includes('<p') && 
+                           (code.includes('<strong') || code.includes('<b')) && 
+                           (code.includes('<em') || code.includes('<i'));
+                }
+            },
+            unorderedList: {
+                points: 5,
+                check: (code) => {
+                    const ulMatch = code.match(/<ul>.*?<\/ul>/s);
+                    if (!ulMatch) return false;
+                    const listItems = ulMatch[0].match(/<li/g);
+                    return listItems && listItems.length >= 3;
+                }
+            },
+            image: {
+                points: 5,
+                check: (code) => {
+                    return /<img[^>]+src=["'][^"']+["'][^>]*alt=["'][^"']*["'][^>]*>/.test(code);
+                }
+            },
+            link: {
+                points: 5,
+                check: (code) => {
+                    // Create a temporary container to parse the HTML
+                    const tempContainer = document.createElement('div');
+                    tempContainer.innerHTML = code;
+                    
+                    // Find all anchor tags
+                    const links = tempContainer.getElementsByTagName('a');
+                    
+                    // Check each link for the exact requirements
+                    for (let link of links) {
+                        if (link.href.includes('https://www.example.com') && 
+                            link.textContent.toLowerCase().trim() === 'visit example') {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+            },
+            table: {
+                points: 10,
+                check: (code) => {
+                    return code.includes('<table') && 
+                           code.includes('<th') && 
+                           code.includes('<tr') && 
+                           code.includes('<td');
+                }
+            },
+            orderedList: {
+                points: 5,
+                check: (code) => {
+                    const olMatch = code.match(/<ol>.*?<\/ol>/s);
+                    if (!olMatch) return false;
+                    const listItems = olMatch[0].match(/<li/g);
+                    return listItems && listItems.length >= 4;
+                }
+            },
+            semanticStructure: {
+                points: 10,
+                check: (code) => {
+                    let count = 0;
+                    if (code.includes('<nav')) count++;
+                    if (code.includes('<article')) count++;
+                    if (code.includes('<aside')) count++;
+                    return count >= 2;
+                }
+            },
+            iframe: {
+                points: 10,
+                check: (code) => {
+                    return /<iframe[^>]+src=["'][^"']+["'][^>]*>/.test(code);
+                }
+            },
+            form: {
+                points: 15,
+                check: (code) => {
+                    return code.includes('<form') && 
+                           code.includes('type="text"') && 
+                           code.includes('type="email"') && 
+                           code.includes('type="number"') && 
+                           code.includes('type="submit"');
+                }
+            },
+            audio: {
+                points: 10,
+                check: (code) => {
+                    return /<audio[^>]*?(>.*?<source[^>]+src=["'][^"']+["'][^>]*>.*?<\/audio>|src=["'][^"']+["'][^>]*>)/is.test(code);
+                }
+            },
+                  
+            dataAttribute: {
+                points: 5,
+                check: (code) => {
+                    return /data-[^=]+=['"][^'"]*['"]/.test(code);
+                }
+            },
+            svgAndCanvas: {
+                points: 10,
+                check: (code) => {
+                    return code.includes('<svg') && 
+                           code.includes('<circle') && 
+                           code.includes('<canvas');
+                }
+            }
+        };
+    
+        let totalPoints = 0;
+        let earnedPoints = 0;
+        let results = [];
+    
+        // Evaluate each requirement
+        for (const [key, requirement] of Object.entries(requirements)) {
+            totalPoints += requirement.points;
+            const passed = requirement.check(code);
+            if (passed) {
+                earnedPoints += requirement.points;
+            }
+            results.push({
+                requirement: key,
+                points: requirement.points,
+                passed: passed
+            });
+        }
+    
+        const percentage = (earnedPoints / totalPoints) * 100;
+        const passed = percentage >= 60; // Pass mark is 60%
+    
+        return {
+            earnedPoints,
+            totalPoints,
+            percentage,
+            passed,
+            results
+        };
+    }
+    
+// Function to display evaluation results
+function showEvaluationResults(evaluation) {
+    // Remove any existing result modal first
+    const existingModal = document.querySelector('.evaluation-modal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+
+    const modal = document.createElement('div');
+    modal.className = 'modal evaluation-modal';
+    
+    const resultColor = evaluation.passed ? '#00c853' : '#ff4444';
+    const resultText = evaluation.passed ? 'PASSED' : 'FAILED';
+    
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 600px;">
+            <h2 style="color: ${resultColor}; margin-bottom: 20px;">Test Result: ${resultText}</h2>
+            <div class="score-summary" style="margin-bottom: 20px; text-align: left;">
+                <p>Total Score: ${evaluation.earnedPoints}/${evaluation.totalPoints} (${evaluation.percentage.toFixed(1)}%)</p>
+                <div class="progress-bar" style="margin: 10px 0; background-color: #eee; height: 20px; border-radius: 10px; overflow: hidden;">
+                    <div style="width: ${evaluation.percentage}%; background-color: ${resultColor}; height: 100%;"></div>
+                </div>
+            </div>
+            
+            <div class="requirement-details" style="text-align: left;">
+                <h3>Detailed Requirements:</h3>
+                <div style="max-height: 300px; overflow-y: auto; margin-top: 10px;">
+                    ${evaluation.results.map(result => `
+                        <div class="requirement-item" style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                            <span>${result.requirement} (${result.points} points)</span>
+                            <span style="color: ${result.passed ? '#00c853' : '#ff4444'}">
+                                ${result.passed ? '✓' : '✗'}
+                            </span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: center;">
+                <button onclick="this.closest('.modal').remove()" class="submit-btn">
+                    Close
+                </button>
+                <button onclick="location.reload()" class="submit-btn" style="background-color: var(--warning-color);">
+                    Start New Test
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
+
+
+submitButton.addEventListener('click', () => {
+    const code = codeInput.value;
+    const evaluation = evaluateHtmlCode(code);
+    showEvaluationResults(evaluation);
+    
+    // Simply disable the code editor
+    codeInput.disabled = true;
+    
+    // Rest of your existing submission logic
+    if (testStarted) {
+        clearInterval(timerInterval);
+        testStarted = false;
+        localStorage.removeItem('testCode');
+    }
+    
+    submissionStatus.textContent = 'Test submitted successfully';
+    submissionStatus.style.backgroundColor = 'var(--success-color)';
+    submissionStatus.style.color = 'white';
+    submissionStatus.style.padding = '10px';
+    submissionStatus.style.borderRadius = '4px';
+});
 
     function submitTest(message) {
         clearInterval(timerInterval);
@@ -342,10 +587,56 @@ document.addEventListener('DOMContentLoaded', () => {
             updatePreview();
         }
     }
+// Fullscreen functionality
+const fullscreenBtn = document.getElementById('fullscreen-btn');
+const testArea = document.querySelector('.test-area');
 
+fullscreenBtn.addEventListener('click', () => {
+    testArea.classList.toggle('fullscreen');
+    
+    // Update button icon and text
+    const icon = fullscreenBtn.querySelector('i');
+    const span = fullscreenBtn.querySelector('span');
+    
+    if (testArea.classList.contains('fullscreen')) {
+        icon.classList.remove('fa-expand');
+        icon.classList.add('fa-compress');
+        span.textContent = 'Exit Fullscreen';
+    } else {
+        icon.classList.add('fa-expand');
+        icon.classList.remove('fa-compress');
+        span.textContent = 'Fullscreen';
+    }
+});
+
+// Handle ESC key to exit fullscreen
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && testArea.classList.contains('fullscreen')) {
+        fullscreenBtn.click();
+    }
+});
+
+// Preserve editor content when toggling fullscreen
+fullscreenBtn.addEventListener('click', () => {
+    // Force re-render of the preview
+    if (codeInput.value) {
+        updatePreview();
+    }
+});
+
+// Adjust preview frame height on window resize
+window.addEventListener('resize', () => {
+    if (testArea.classList.contains('fullscreen')) {
+        const previewFrame = document.getElementById('preview-frame');
+        const codeInput = document.getElementById('code-input');
+        const newHeight = window.innerHeight - 200;
+        previewFrame.style.height = `${newHeight}px`;
+        codeInput.style.height = `${newHeight}px`;
+    }
+});
     codeInput.addEventListener('copy', (e) => e.preventDefault());
     codeInput.addEventListener('cut', (e) => e.preventDefault());
-    codeInput.addEventListener('paste', (e) => e.preventDefault());
+    // codeInput.addEventListener('paste', (e) => e.preventDefault());
 
     document.addEventListener('visibilitychange', () => {
         if (testStarted && document.visibilityState === 'hidden') {

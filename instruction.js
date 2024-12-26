@@ -1,7 +1,8 @@
 export const mockTestInstructions = {
     html: {
         title: "Task Instructions",
-        overview: "General Instructions: Create a single HTML file for all tasks. Use proper indentation and comments. All requested features must be correctly present in the code.",
+        duration: "30 Minutes",  // Added the duration property here
+        overview: "General Instructions: Use proper indentation and comments. All requested features must be correctly present in the code.",
         sections: [
             {
                 title: "Beginner Level (25 points)",
